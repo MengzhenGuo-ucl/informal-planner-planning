@@ -55,7 +55,7 @@ public class VoxelGrid
                             new Vector3Int(x, y, z),
                             this);
                     }
-                    
+
                 }
             }
         }
@@ -74,9 +74,9 @@ public class VoxelGrid
     /// <param name="height"></param>
     /// <param name="parent"></param>
     /// 
-    public VoxelGrid(Texture2D input, Vector3 origin, int height,float voxelSize, Transform parent = null)
+    public VoxelGrid(Texture2D input, Vector3 origin, int height, float voxelSize, Transform parent = null)
     {
-       
+
         // create new grid with image size
         GridSize = new Vector3Int(input.width, height, input.height);
 
@@ -294,7 +294,7 @@ public class VoxelGrid
     /// <param name="picky">If the blob should skip voxels randomly as it expands</param>
     /// <param name="flat">If the blob should be located on the first layer or use all</param>
     /// <returns></returns>
-    
+
     public bool GrowPlot(Vector3Int origin, int radius, int height = 0)
     {
 
@@ -306,7 +306,7 @@ public class VoxelGrid
         FunctionColor plotcolor = FunctionColor.White;
 
         //check if the origin is valid and add it to voxel list
-        if (Util.ValidateIndex(GridSize, origin) )
+        if (Util.ValidateIndex(GridSize, origin))
         {
             growingVoxel.Add(Voxels[origin.x, height, origin.z]);
         }
@@ -315,7 +315,7 @@ public class VoxelGrid
         //Iterate through the neighboring layer within the radius
         for (int i = 0; i < radius; i++)
         {
-            
+
             List<Voxel> availableVoxels = new List<Voxel>();
 
             foreach (var voxel in growingVoxel)
@@ -328,7 +328,7 @@ public class VoxelGrid
                 if (height == 0)
                 {
                     neighbors = voxel.GetFaceNeighboursXZ().ToArray();
-                                       
+
                 }
                 else
                 {
@@ -339,9 +339,9 @@ public class VoxelGrid
                 foreach (var neighbour in neighbors)
                 {
                     //check if is the available plot voxel
-                 
+
                     //+ if color is blue(backyard area that allows to grow)
-                    if (neighbour.FColor == FunctionColor.Blue && neighbour.IsActive && Util.ValidateIndex(GridSize, neighbour.Index) && !growingVoxel.Contains(neighbour) && !availableVoxels.Contains(neighbour) )
+                    if (neighbour.FColor == FunctionColor.Blue && neighbour.IsActive && Util.ValidateIndex(GridSize, neighbour.Index) && !growingVoxel.Contains(neighbour) && !availableVoxels.Contains(neighbour))
                     {
                         availableVoxels.Add(neighbour);
                     }
@@ -358,7 +358,7 @@ public class VoxelGrid
                 {
                     growingVoxel.Add(availableVoxel);
                 }
-               
+
             }
         }
 
@@ -370,7 +370,7 @@ public class VoxelGrid
                 voxel.FColor = plotcolor;
                 voxel.Qname = ColorQuality.Plot;
             }
-            
+
         }
 
         return true;
@@ -386,7 +386,7 @@ public class VoxelGrid
         return true;
     }
 
-   
+
     /// <summary>
     /// Reads an image pixel data and set the color pixels and corresponding label/quality to the grid
     /// </summary>
@@ -406,7 +406,35 @@ public class VoxelGrid
 
                 GraphVoxel voxel = (GraphVoxel)Voxels[x, 0, z];
                 //read RGB channel
-                
+                float[] colorScores = new float[9]
+                {
+                Mathf.Abs(pixel.r - 0) + Mathf.Abs(pixel.g - 1) + Mathf.Abs(pixel.b - 1),//Black
+                Mathf.Abs(pixel.r - 1) + Mathf.Abs(pixel.g - 0) + Mathf.Abs(pixel.b - 0),//Red
+                Mathf.Abs(pixel.r - 1) + Mathf.Abs(pixel.g - 1) + Mathf.Abs(pixel.b - 0),//Yellow
+                Mathf.Abs(pixel.r - 0) + Mathf.Abs(pixel.g - 1) + Mathf.Abs(pixel.b - 0),//Green
+                Mathf.Abs(pixel.r - 0) + Mathf.Abs(pixel.g - 1) + Mathf.Abs(pixel.b - 1),//Cyan
+                Mathf.Abs(pixel.r - 1) + Mathf.Abs(pixel.g - 0) + Mathf.Abs(pixel.b - 1),//Magenta
+                Mathf.Abs(pixel.r - 0) + Mathf.Abs(pixel.g - 0) + Mathf.Abs(pixel.b - 1),//Blue
+                Mathf.Abs(pixel.r - 1) + Mathf.Abs(pixel.g - 1) + Mathf.Abs(pixel.b - 1),//White
+                Mathf.Abs(pixel.r - .5f) + Mathf.Abs(pixel.g - .5f) + Mathf.Abs(pixel.b - .5f)//Gray
+                };
+                //Get the colors right
+
+
+                float biggestScore = 0;
+                int colorIndex = 0;
+                for (int i = 0; i < colorScores.Length; i++)
+                {
+                    if (colorScores[i] > biggestScore)
+                    {
+                        biggestScore = colorScores[i];
+                        colorIndex = i;
+                    }
+                }
+
+                Voxels[x, layer, z].FColor = (FunctionColor)colorIndex;
+
+                /*
                 //0,0,1
                 if (pixel.b > pixel.r && pixel.b > pixel.g)
                 {
@@ -414,18 +442,21 @@ public class VoxelGrid
                     Voxels[x, layer, z].Qname = ColorQuality.Backyard;
 
                 }
+
+
+
                 //0,1,1
                 else if (pixel.b > pixel.r && pixel.g > pixel.r)
                 {
                     Voxels[x, layer, z].FColor = FunctionColor.Cyan;
                     Voxels[x, layer, z].Qname = ColorQuality.LandTexture;
                 }
-                
+
                 else if (pixel.r == 0.5f && pixel.g == 0.5f)
                 {
-                    Voxels[x, layer, z].FColor = FunctionColor.Gray;   
+                    Voxels[x, layer, z].FColor = FunctionColor.Gray;
                 }
-              
+
                 //0,1,0
                 else if (pixel.g > pixel.r && pixel.g > pixel.b)
                 {
@@ -439,7 +470,7 @@ public class VoxelGrid
                     Voxels[x, layer, z].FColor = FunctionColor.Magenta;
                     //Voxels[x, layer, z]._voxelGO.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/FrontYard");
                     Voxels[x, layer, z].Qname = ColorQuality.Frontyard;
-                }    
+                }
                 //1,1,0 pixel.g / pixel.r>= 1f
                 else if (pixel.r > pixel.b && pixel.g > pixel.b)
                 {
@@ -462,14 +493,14 @@ public class VoxelGrid
                     //Voxels[x, layer, z]._voxelGO.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Plot");
                     Voxels[x, layer, z].Qname = ColorQuality.Plot;
                 }
-                
-              
+
+
                 // Check if pixel is red
                 //if (pixel.r >pixel.g)
                 //{
                 //    // Set respective color to voxel
                 //    Voxels[x, layer, z].FColor = FunctionColor.Red;
-                //}
+                //}*/
             }
         }
 

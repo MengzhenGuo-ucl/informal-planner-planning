@@ -12,12 +12,12 @@ public class Voxel : IEquatable<Voxel>
     public Vector3 Center => (Index + _voxelGrid.Origin) * _size;
     public bool IsActive;
 
-    
+
     public FunctionColor FColor;
 
     public ColorQuality Qname;
 
-    public GameObject VoxelCollider =  null;
+    public GameObject VoxelCollider = null;
     public GameObject _voxelGO;
 
     #endregion
@@ -26,7 +26,7 @@ public class Voxel : IEquatable<Voxel>
 
     protected VoxelGrid _voxelGrid;
     protected float _size;
-    
+
 
     #endregion
 
@@ -168,6 +168,8 @@ public class Voxel : IEquatable<Voxel>
         return result;
     }
 
+
+
     /// <summary>
     /// Activates the visibility of this voxel
     /// </summary>
@@ -176,6 +178,37 @@ public class Voxel : IEquatable<Voxel>
         IsActive = state;
     }
 
+
+    public float RaycastSunScore()
+    {
+        float lightscore = 0;
+        float maxRayLength = 10f;
+        //Make a circle with all direcitons
+        List<Vector3> directions = new List<Vector3>()
+        {
+            new Vector3(1,0,0),
+            new Vector3(.5f,.5f,0)
+
+    };
+
+        foreach (var direction in directions)
+        {
+            RaycastHit hit;
+            //Make sure only the voxels that represent physical opbjects can hit (either disable colliders or put the other voxels into the ignoreraycast layer)
+            if (Physics.Raycast(VoxelCollider.transform.position, direction, out hit, maxRayLength)) 
+            {
+                //get distance from centre of the voxel to the hit
+                //add distance to lightscore
+            }
+            else
+            {
+                lightscore += maxRayLength;
+            }
+        }
+
+        lightscore /= directions.Count;
+        return lightscore;
+    }
     #endregion
 
     #region Equality checks
